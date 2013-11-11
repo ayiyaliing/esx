@@ -1,1 +1,24 @@
 hello
+function Get-VMIPAddress ($VMName)
+{
+    $Query = "SELECT * FROM Msvm_ComputerSystem WHERE ElementName = '" + $VMName + "'"
+    $VM = Get-WmiObject -Query $Query -Namespace "root\virtualization\v2"
+
+    if ($VM -eq $null)
+    {
+        write-host ("No VM found with the specified name '" + $VMName + "'")
+        return
+    }
+
+    $Query = "ASSOCIATORS OF {" + $VM.__PATH + "} WHERE ResultClass = Msvm_VirtualSystemSettingData"
+    $VMSettings = Get-WmiObject -Query $Query -Namespace "root\virtualization\v2"
+
+    $Query = "ASSOCIATORS OF {" + $VMSettings.__PATH + "} WHERE ResultClass = Msvm_SyntheticEthernetPortSettingData"
+    $VMNIC = Get-WmiObject -Query $Query -Namespace "root\virtualization\v2"
+
+    $Query = "ASSOCIATORS OF {" + $VMNIC.__PATH + "} WHERE ResultClass = Msvm_GuestNetworkAdapterConfiguration"
+    $VMIpSettings = Get-WmiObject -Query $Query -Namespace "root\virtualization\v2"
+
+    $VMIpSettings
+}
+
